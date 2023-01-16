@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torchvision import datasets, transforms
 from torch import nn, optim
-from main import create_model
+from main import model, cost, optimizer
 
 def train(model, train_loader, cost, optimizer, epoch):
     model.train()
@@ -48,21 +48,11 @@ testing_transform = transforms.Compose([
 batch_size=64
 epoch=10
 
-print("Downloading Data")
 # Download and load the training data
 trainset = datasets.MNIST('data/', download=True, train=True, transform=training_transform)
 testset = datasets.MNIST('data/', download=True, train=False, transform=testing_transform)
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
-print("Loading Model")
-model=create_model()
-
-cost = nn.NLLLoss()
-
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-print("Starting Model Training")
 train(model, train_loader, cost, optimizer, epoch)
-print("Testing Trained Model")
 test(model, test_loader)
