@@ -14,13 +14,14 @@ def train(model, train_loader, cost, optimizer, epoch):
         for data, target in train_loader:
             data = data.view(data.shape[0], -1)
             optimizer.zero_grad()
-            pred = model(pred)
+            pred = model(data)
             loss = cost(pred, target)
             running_loss+= loss
             loss.backward()
             optimizer.step()
-            pred = pred.data.max(1, keepdim=True)
-            correct += pred.eq(target.data.view_as(pred)).sum().item()
+            pred = pred.argmax(dim=1, keepdim=True)
+            correct += pred.eq(target.view_as(pred)).sum().item()
+        print(f"Epoch {e}: Loss {running_loss/len(train_loader.dataset)}, Accuracy {100*(correct/len(train_loader.dataset))}%")
 
 def test(model, test_loader):
     model.eval()
@@ -31,7 +32,7 @@ def test(model, test_loader):
             data = data.view(data.shape[0], -1)
             output = model(data)
             pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(target.view_as(pred)).sum().item
+            correct += pred.eq(target.view_as(pred)).sum().item()
     print(f'Test set: Accuracy: {correct}/{len(test_loader.dataset)} = {100*(correct/len(test_loader.dataset))}%)')
 
 
@@ -62,20 +63,21 @@ batch_size = 64
 epoch = 10
 
 #TODO: Download and create loaders for your data
-trainset = datasets.MNIST('/data', train=True, download=True, transform=training_transform)
-testset = datasets.MNIST('/data', train=False, download=True, transform=testing_transform)
+trainset = datasets.MNIST('./data2', train=True, download=True, transform=training_transform)
+testset = datasets.MNIST('./data2', train=False, download=True, transform=testing_transform)
 
-train_loader = torch._utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-test_loader = torch._utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
 #NOTE: Do not change any of the variable names to ensure that the training script works properly
-
+print("Loading Model")
 model=create_model()
 
 cost = nn.NLLLoss()
 
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-
+print('Starting Model Training')
 train(model, train_loader, cost, optimizer, epoch)
+print('Testing Trained Model')
 test(model, test_loader)
